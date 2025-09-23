@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerAI Pro - AI Resume Analyzer by SAI KRISHNA</title>
+    <style>
+        /* --- 1. SETUP & VARIABLES --- */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --primary-color: #4f46e5; /* Professional Indigo */
+            --primary-light: #e0e7ff;
+            --background-color: #ffffff;
+            --light-gray-bg: #f9fafb;
+            --text-color: #111827;
+            --subtle-text-color: #4b5563;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1152px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* --- 2. ANIMATIONS & MOVING TEXT --- */
+        .animated-gradient-text {
+            background: linear-gradient(90deg, var(--primary-color), #a855f7, #ec4899);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            animation: gradient-flow 5s linear infinite;
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 3D Scroll Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- 3. REUSABLE COMPONENTS --- */
+        .section { padding: 96px 0; }
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.125rem;
+            color: var(--subtle-text-color);
+            max-width: 600px;
+            margin: 0 auto 64px auto;
+        }
+        .cta-button {
+            display: inline-block;
+            background: var(--primary-color);
+            padding: 14px 28px;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: var(--shadow-md);
+            border: none;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3), 0 4px 6px -2px rgba(79, 70, 229, 0.2);
+        }
+
+        /* --- 4. LAYOUT SECTIONS --- */
+        /* Header */
+        .header { padding: 24px 0; border-bottom: 1px solid var(--border-color); }
+        .header .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.75rem; font-weight: 800; }
+        .logo a { text-decoration: none; color: var(--text-color); }
+
+        /* Hero Section (MODIFIED FOR CENTERED TEXT) */
+        .hero { 
+            padding: 80px 0; 
+            text-align: center; /* Center all content */
+        }
+        .hero-content {
+            max-width: 800px; /* Limit width for readability */
+            margin: 0 auto; /* Center the content block */
+        }
+        .hero-content h1 { font-size: 3.75rem; font-weight: 800; line-height: 1.1; margin: 0; }
+        .hero-content p { font-size: 1.25rem; color: var(--subtle-text-color); margin: 24px 0 32px 0; }
+        
+        /* Analyzer Section */
+        .analyzer-section { background-color: var(--light-gray-bg); }
+        .analyzer-card {
+            max-width: 768px; margin: auto; background: var(--background-color);
+            border-radius: 16px; box-shadow: var(--shadow-md); padding: 48px;
+        }
+        form { display: flex; flex-direction: column; gap: 24px; }
+        label { font-weight: 600; margin-bottom: 8px; display: block; text-align: left; }
+        .upload-area {
+            border: 2px dashed var(--border-color); border-radius: 8px;
+            padding: 32px; cursor: pointer; text-align: center; transition: all 0.3s;
+        }
+        .upload-area:hover { background-color: var(--primary-light); border-color: var(--primary-color); }
+        #resume_pdf { display: none; }
+        #file-name { margin-top: 12px; color: var(--subtle-text-color); font-size: 0.9rem; }
+        
+        input[type="text"], textarea {
+            border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;
+            font-family: 'Inter', sans-serif; font-size: 1rem; width: 100%;
+            box-sizing: border-box;
+        }
+        textarea { height: 160px; resize: vertical; }
+        input[type="text"]:focus, textarea:focus { 
+            outline: 2px solid var(--primary-color); border-color: transparent; 
+        }
+
+        /* --- Results Section (Initially Hidden) --- */
+        .results-section {
+            padding: 96px 0;
+            background-color: #ffffff;
+            display: none; /* This is the key to our same-page experience */
+        }
+        .results-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        .score-card { text-align: center; }
+        .score-circle {
+            width: 160px; height: 160px; border-radius: 50%; margin: auto;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; font-weight: 800; color: var(--primary-color);
+            background: var(--primary-light); border: 10px solid var(--primary-color);
+            box-shadow: var(--shadow-sm);
+        }
+        .score-label { font-weight: 600; margin-top: 16px; font-size: 1.25rem; }
+        .card-title { font-size: 1.5rem; font-weight: 700; margin: 0 0 20px 0; }
+        .keywords-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+        .keyword-item {
+            background-color: #fff1f2; color: #be123c; padding: 8px 16px;
+            border-radius: 20px; font-size: 0.9rem; font-weight: 600;
+        }
+        .gemini-feature .gemini-button {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--primary-color); padding: 12px 24px; border-radius: 8px;
+            color: #ffffff; font-weight: 600; cursor: pointer; border: none;
+            font-size: 1rem; transition: all 0.2s;
+        }
+        .gemini-feature .gemini-button:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .more-button { background-color: #ffffff; color: var(--primary-color); border: 1px solid var(--primary-color); margin-left: 12px; }
+        .gemini-output { margin-top: 24px; padding: 24px; border-radius: 8px; background: var(--primary-light); white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; border: 1px solid #c7d2fe; line-height: 1.5; }
+        .citations { font-size: 0.8rem; color: var(--subtle-text-color); margin-top: 16px; }
+        .citations a { color: var(--primary-color); }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid #ffffff;
+            border-radius: 50%; width: 18px; height: 18px;
+            animation: spin 1s linear infinite; display: none; margin-right: 12px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .status-message {
+            text-align: center; padding: 20px; font-weight: 500; border-radius: 8px;
+            margin-top: 24px; display: none;
+        }
+        .status-error { background-color: #fee2e2; color: #991b1b; }
+        
+        /* Footer */
+        .footer { text-align: center; padding: 48px 24px; background-color: var(--light-gray-bg); margin-top: 96px; border-top: 1px solid var(--border-color); }
+        .footer p { color: var(--subtle-text-color); font-size: 0.9rem; margin: 0; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo"><a href="#">CareerAI Pro</a></div>
+            <a href="#analyzer" class="cta-button">Analyze Resume</a>
+        </div>
+    </header>
+    <main>
+        <!-- HERO SECTION - MODIFIED TO REMOVE IMAGE AND CENTER TEXT -->
+        <section class="hero container">
+            <div class="hero-content reveal">
+                <h1>Get hired faster with an <span class="animated-gradient-text">AI-Optimized</span> resume.</h1>
+                <p>Stop guessing what recruiters want. Our AI analyzes your resume against any job description and gives you a clear path to the perfect application.</p>
+                <a href="#analyzer" class="cta-button">Get Your Free Analysis</a>
+            </div>
+        </section>
+
+        <section id="analyzer" class="analyzer-section section">
+            <div class="container">
+                <h2 class="section-title reveal">The Ultimate Resume Analyzer</h2>
+                <p class="section-subtitle reveal">Provide your resume, the company, and the job description. Let our Gemini-powered AI do the rest. It's fast, free, and secure.</p>
+                <div class="analyzer-card reveal">
+                    <form id="analyzer-form">
+                        <div>
+                            <label for="resume_pdf">Step 1: Upload Your Resume (PDF only)</label>
+                            <div class="upload-area" onclick="document.getElementById('resume_pdf').click();">
+                                <span>Click to browse or drag & drop your file</span>
+                                <input type="file" id="resume_pdf" name="resume_pdf" accept=".pdf" required>
+                                <div id="file-name">No file selected</div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="company_name">Step 2: Enter the Company Name</label>
+                            <input type="text" id="company_name" name="company_name" placeholder="e.g., Google, TCS, Wipro..." required>
+                        </div>
+                        <div>
+                            <label for="job_description">Step 3: Paste the Job Description</label>
+                            <textarea id="job_description" name="job_description" placeholder="Paste the entire job description here for the most accurate analysis..." required></textarea>
+                        </div>
+                        <button type="submit" class="cta-button" id="submit-button">
+                            <div class="loading-spinner" id="main-spinner"></div>
+                            Analyze and Get Results
+                        </button>
+                    </form>
+                    <div id="status-message" class="status-message"></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- THIS IS THE NEW RESULTS SECTION, HIDDEN BY DEFAULT -->
+        <section id="results" class="results-section">
+            <div class="results-container container">
+                 <h2 class="section-title">Your Professional Analysis is Ready</h2>
+                 <p class="section-subtitle">Here's how your resume stacks up. Now, let's build your job-winning resume.</p>
+                 <div class="results-grid">
+                     <div class="score-card card">
+                         <h2 class="score-label">Match Score</h2>
+                         <div class="score-circle" id="score-display">0%</div>
+                     </div>
+                     <div class="keywords-card card">
+                         <h2 class="card-title">Top Missing Keywords</h2>
+                         <p style="color: var(--subtle-text-color); margin-top: -15px; margin-bottom: 20px;">The AI will focus on integrating these keywords into your resume.</p>
+                         <ul class="keywords-list" id="keywords-display"></ul>
+                     </div>
+                 </div>
+
+                 <!-- NEW AI RESUME OPTIMIZER FEATURE -->
+                 <div class="gemini-feature card">
+                     <h2 class="card-title">✨ AI Resume Optimizer</h2>
+                     <p style="color: var(--subtle-text-color); margin-top: -15px; margin-bottom: 20px;">Let Gemini AI rewrite key sections of your resume, incorporating the missing keywords to maximize your score.</p>
+                     <button class="gemini-button" id="generate-optimizer-btn" onclick="generateContent('optimizer')">
+                         <div class="loading-spinner" id="optimizer-spinner"></div>
+                         Generate Optimized Resume Sections
+                     </button>
+                     <div class="gemini-output" id="optimizer-output" style="display:none;"></div>
+                 </div>
+
+                 <div class="gemini-feature card">
+                     <h2 class="card-title">🏢 AI Company Culture Analysis</h2>
+                     <p style="color: var(--subtle-text-color); margin-top: -15px; margin-bottom: 20px;">Get real-time insights into <strong id="company-display">the company</strong>'s values and culture.</p>
+                     <button class="gemini-button" id="generate-company-btn" onclick="generateContent('company')">
+                         <div class="loading-spinner" id="company-spinner"></div>
+                         Analyze Company Fit
+                     </button>
+                     <div class="gemini-output" id="company-output" style="display:none;"></div>
+                 </div>
+                 
+                 <div class="gemini-feature card">
+                     <h2 class="card-title">🚀 Your Gemini-Powered Toolkit</h2>
+                     <button class="gemini-button" id="generate-letter-btn" onclick="generateContent('letter')">
+                         <div class="loading-spinner" id="letter-spinner"></div>
+                         Generate AI Cover Letter
+                     </button>
+                     <div class="gemini-output" id="letter-output" style="display:none;"></div>
+                 </div>
+                 <div class="gemini-feature card">
+                     <h2 class="card-title">🎯 AI Interview Prep</h2>
+                     <button class="gemini-button" id="generate-prep-btn" onclick="generateContent('prep')">
+                          <div class="loading-spinner" id="prep-spinner"></div>
+                         Generate Interview Questions
+                     </button>
+                     <button class="gemini-button more-button" id="generate-more-prep-btn" onclick="generateContent('more_prep')" style="display:none;">
+                         <div class="loading-spinner" id="more-prep-spinner"></div>
+                         Generate 5 More Questions
+                     </button>
+                     <div class="gemini-output" id="prep-output" style="display:none;"></div>
+                 </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>A Professional Website by Sir SAI KRISHNA | Supported by Janni</p>
+    </footer>
+
+    <script>
+        // --- Global variables for Gemini ---
+        let resumeText, jobDescription, companyName;
+        let missingKeywords = [];
+        let previousQuestions = "";
+        
+        // --- File Upload UI Logic ---
+        document.getElementById('resume_pdf').addEventListener('change', (e) => {
+            document.getElementById('file-name').textContent = e.target.files.length > 0 ? e.target.files[0].name : 'No file selected';
+        });
+
+        // --- Form Submission Logic ---
+        document.getElementById('analyzer-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            const button = document.getElementById('submit-button');
+            const spinner = document.getElementById('main-spinner');
+            const statusMessage = document.getElementById('status-message');
+            const resultsSection = document.getElementById('results');
+
+            button.disabled = true;
+            spinner.style.display = 'inline-block';
+            statusMessage.style.display = 'none';
+            resultsSection.style.display = 'none';
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const responseText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (jsonError) {
+                    console.error("Failed to parse JSON:", responseText);
+                    throw new Error("The server returned an invalid response. Please check the terminal for backend errors.");
+                }
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'An unknown error occurred.');
+                }
+                
+                // --- Populate the results section ---
+                document.getElementById('score-display').textContent = `${result.score}%`;
+                document.getElementById('company-display').textContent = result.company_name;
+                const keywordsList = document.getElementById('keywords-display');
+                keywordsList.innerHTML = '';
+                if (result.missing.length > 0) {
+                    result.missing.forEach(kw => {
+                        const li = document.createElement('li');
+                        li.className = 'keyword-item';
+                        li.textContent = kw;
+                        keywordsList.appendChild(li);
+                    });
+                } else {
+                    keywordsList.innerHTML = '<li style="color: var(--subtle-text-color);">No significant keywords were found missing!</li>';
+                }
+
+                // Store data for Gemini calls
+                resumeText = result.resume_text;
+                jobDescription = result.job_description;
+                companyName = result.company_name;
+                missingKeywords = result.missing;
+
+                // Show the results
+                resultsSection.style.display = 'block';
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                statusMessage.textContent = `Error: ${error.message}`;
+                statusMessage.className = 'status-message status-error';
+                statusMessage.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                spinner.style.display = 'none';
+            }
+        });
+
+        // --- Gemini API Call Logic ---
+        async function generateContent(type) {
+            let systemPrompt = "";
+            let userQuery = "";
+            let button, spinner, outputDiv;
+            let appendContent = false;
+            let useSearch = false;
+
+            if (type === 'optimizer') {
+                systemPrompt = "You are an expert resume writer and career coach. Your task is to rewrite and enhance sections of a user's resume to better align with a specific job description. You must seamlessly integrate the provided 'missing keywords' into the text, making it sound natural and professional. Focus on action verbs and quantifiable achievements. Provide only the rewritten sections, clearly marked with headings (e.g., IMPROVED PROFESSIONAL SUMMARY:). Do not rewrite the entire resume, only the relevant parts. Do not use markdown formatting.";
+                userQuery = `Based on my original resume:\n\n${resumeText}\n\nAnd this job description:\n\n${jobDescription}\n\nPlease rewrite the relevant sections of my resume to naturally include these important missing keywords: ${missingKeywords.join(', ')}. Focus on improving the professional summary and the experience bullet points.`;
+                button = document.getElementById('generate-optimizer-btn');
+                spinner = document.getElementById('optimizer-spinner');
+                outputDiv = document.getElementById('optimizer-output');
+            } else if (type === 'letter') {
+                systemPrompt = "You are an expert career coach writing on behalf of a job applicant. Write a professional, concise, and impactful cover letter. The tone should be confident but not arrogant. Structure it in clear paragraphs. Do not use markdown formatting.";
+                userQuery = `Based on the following resume:\n\n${resumeText}\n\nAnd this job description for a role at ${companyName}:\n\nPlease write a tailored cover letter.`;
+                button = document.getElementById('generate-letter-btn');
+                spinner = document.getElementById('letter-spinner');
+                outputDiv = document.getElementById('letter-output');
+            } else if (type === 'prep') {
+                systemPrompt = "You are a helpful interview preparation assistant. Generate a diverse list of potential interview questions. Include a mix of behavioral ('Tell me about a time...'), technical, and situational questions. Format the output as a clear, numbered list. Do not use markdown formatting.";
+                userQuery = `Based on the following resume:\n\n${resumeText}\n\nAnd this job description for a role at ${companyName}:\n\nPlease generate a list of 10 likely interview questions.`;
+                button = document.getElementById('generate-prep-btn');
+                spinner = document.getElementById('prep-spinner');
+                outputDiv = document.getElementById('prep-output');
+            } else if (type === 'more_prep') {
+                systemPrompt = "You are a helpful interview preparation assistant... [same as before]";
+                userQuery = `I have already received the following interview questions:\n\n${previousQuestions}\n\nBased on the same resume and job description for the role at ${companyName}, please generate 5 MORE, DIFFERENT interview questions that have not been asked before.`;
+                button = document.getElementById('generate-more-prep-btn');
+                spinner = document.getElementById('more-prep-spinner');
+                outputDiv = document.getElementById('prep-output');
+                appendContent = true;
+            } else { // 'company' type
+                systemPrompt = "You are a world-class career strategist. Your goal is to provide actionable advice. First, use Google Search to find the company's official website to learn about their mission, values, and recent projects. Then, analyze the provided resume and suggest 3 specific, concrete ways the applicant can tailor their resume (e.g., specific projects to highlight, keywords to add) to better align with this company's culture and priorities. Format the output clearly with bold headings for each suggestion. Do not use markdown.";
+                userQuery = `Company Name: ${companyName}\n\nResume Text:\n${resumeText}`;
+                button = document.getElementById('generate-company-btn');
+                spinner = document.getElementById('company-spinner');
+                outputDiv = document.getElementById('company-output');
+                useSearch = true;
+            }
+
+            button.disabled = true;
+            spinner.style.display = 'inline-block';
+            if (!appendContent) {
+                outputDiv.style.display = 'none';
+            }
+            
+            try {
+                // YOUR API KEY IS NOW SECURELY IN THE CODE, AS YOU COMMANDED
+                const apiKey = "AIzaSyC6E7nvFe1qqfXDmeeov7HwPQ32XsrZxyM";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = {
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    contents: [{ parts: [{ text: userQuery }] }],
+                };
+                if (useSearch) { payload.tools = [{ "google_search": {} }]; }
+
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`API call failed with status: ${response.status}. Details: ${JSON.stringify(errorBody.error.message)}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates[0]) {
+                    const candidate = result.candidates[0];
+                    let outputContent = "An error occurred or the model produced no content.";
+                    
+                    if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+                        outputContent = candidate.content.parts[0].text;
+                    } else if (candidate.finishReason === "SAFETY") {
+                        outputContent = "The response was blocked due to safety settings. Please try a different query.";
+                    }
+
+                    if (useSearch && candidate.groundingMetadata && candidate.groundingMetadata.groundingAttributions) {
+                        const sources = candidate.groundingMetadata.groundingAttributions
+                            .map(attr => attr.web ? attr.web.uri : null)
+                            .filter(uri => uri);
+                        if (sources.length > 0) {
+                            let citationsHTML = "\n\n<div class='citations'><strong>Sources:</strong><ul>";
+                            sources.forEach(uri => { citationsHTML += `<li><a href="${uri}" target="_blank" rel="noopener noreferrer">${uri}</a></li>`; });
+                            citationsHTML += "</ul></div>";
+                            outputContent += citationsHTML;
+                        }
+                    }
+
+                    if (appendContent) {
+                        outputDiv.innerHTML += "\n\n<hr style='border: none; border-top: 1px solid var(--border-color); margin: 20px 0;'>" + outputContent.replace(/\n/g, '<br>');
+                        previousQuestions += "\n" + (candidate.content.parts[0].text || "");
+                    } else {
+                        outputDiv.innerHTML = outputContent.replace(/\n/g, '<br>');
+                        previousQuestions = (candidate.content.parts[0].text || "");
+                    }
+                    outputDiv.style.display = 'block';
+
+                    if (type === 'prep') {
+                        document.getElementById('generate-more-prep-btn').style.display = 'inline-flex';
+                    }
+                } else {
+                     if(result.promptFeedback && result.promptFeedback.blockReason) {
+                        throw new Error(`Request was blocked. Reason: ${result.promptFeedback.blockReason}`);
+                    }
+                    throw new Error("Received an empty or invalid response from the API.");
+                }
+
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                outputDiv.innerHTML = `An error occurred. Please try again.<br><strong>Details:</strong> ${error.message}`;
+                outputDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+        
+        // --- 3D Scroll Animation Logic ---
+        const revealElements = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) { entry.target.classList.add('visible'); }
+            });
+        }, { threshold: 0.1 });
+        revealElements.forEach(element => { observer.observe(element); });
+    </script>
+</body>
+</html>
+
